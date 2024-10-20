@@ -159,7 +159,7 @@ void capitalize_token(char *token, int token_length) {
 }
 
 void print_token(char *token, int token_length) {
-  printf("token = %s, length = %d\n", token, token_length);
+  printf("token = (%s), length = (%d)\n", token, token_length);
 }
 
 #define MAX_SIZE 512000
@@ -180,7 +180,7 @@ int main(void) {
   list_node *head_p = token_list;
 
   ITTER_LIST_CB(head_n, capitalize_token);
-  ITTER_LIST_CB(head_p,  print_token);
+  ITTER_LIST_CB(head_p, print_token);
 
   return 0;
 }
