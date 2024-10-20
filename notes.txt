@@ -1,0 +1,3 @@
+[] make the speach sentences to phontic sentences
+[] figure out how to turn a sound into a mel spectrogram
+[] firgure out how to make a nuraml net work do it for you 
