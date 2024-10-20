@@ -16,14 +16,19 @@ list_node *create_node(char *token) {
     return NULL;
   }
 
-  new_node->token = token;
+  new_node->token = strdup(token);
+  if (new_node->token == NULL) {
+    free(new_node);
+    return NULL;
+  }
+
   new_node->next = NULL;
   return new_node;
 }
 
 // with link list you need to always maintain the head or else you have no idea where the list starts
 list_node *str_to_token_list(char *str) {
-  char *token;
+  char *token = NULL;
 
   list_node *head = NULL; 
   list_node *curr = NULL;
@@ -81,6 +86,16 @@ void print_list(list_node *head) {
     assert( (lh)->token != NULL ); \
     cb( (lh)->token, strlen( (lh)->token ) );\
   } \
+
+#define FREE_LIST(lh)\
+  while (lh != NULL) {\
+    list_node *tmp = (lh);\
+    (lh) = (lh)->next;\
+    assert(tmp->token != NULL);\
+    free(tmp->token);\
+    free(tmp);\
+  }\
+
 
 /**
  * @brief find first digit char, uses reverse indexing 
@@ -169,6 +184,8 @@ int main(void) {
   if ( buffer == NULL ) {
     return 1;
   }
+  memset(buffer, 0, MAX_SIZE);
+  assert( buffer[0] == 0 && buffer[MAX_SIZE-1] == 0);
 
   size_t bytes_read = fread(buffer, sizeof(*buffer), MAX_SIZE, stdin);
   assert( bytes_read < MAX_SIZE && bytes_read > 0 );
@@ -177,10 +194,13 @@ int main(void) {
   list_node *token_list = str_to_token_list(buffer);
   
   list_node *head_n = token_list;
-  list_node *head_p = token_list;
+  //list_node *head_p = token_list;
+  list_node *free_head = token_list;
 
   ITTER_LIST_CB(head_n, capitalize_token);
-  ITTER_LIST_CB(head_p, print_token);
+  //ITTER_LIST_CB(head_p, print_token);
 
+  FREE_LIST(free_head);
+  free(buffer);
   return 0;
 }
