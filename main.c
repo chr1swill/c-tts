@@ -121,7 +121,7 @@ char *map_digit_to_str(char digit) {
 }
 
 void expand_number_token(char *token, int token_length) {
-  size_t digit_array_length = 0;
+  int digit_array_length = 0;
   int digit_array[token_length];
   memset(digit_array, 0, token_length);
 
@@ -158,19 +158,20 @@ void capitalize_token(char *token, int token_length) {
   }
 }
 
-void print_token(char *token, int token_lenght) {
-  printf("%s\n", token);
+void print_token(char *token, int token_length) {
+  printf("token = %s, length = %d\n", token, token_length);
 }
 
 #define MAX_SIZE 512000
 
-int main(int argc, char **argv) {
+int main(void) {
  char *buffer = malloc( sizeof(*buffer) *  MAX_SIZE );
   if ( buffer == NULL ) {
     return 1;
   }
 
   size_t bytes_read = fread(buffer, sizeof(*buffer), MAX_SIZE, stdin);
+  assert( bytes_read < MAX_SIZE && bytes_read > 0 );
 
   puts("Got input:");
   list_node *token_list = str_to_token_list(buffer);

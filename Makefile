@@ -3,11 +3,11 @@ outdir=bin
 
 all: clean outdir main create_dict_db
 
+clean: 
+	rm -rf $(outdir)
+
 outdir:
 	mkdir -p $(outdir)
-
-clean: outdir
-	rm -rf $(outdir)
 
 main: main.c
 	gcc $(cflags) -o $(outdir)/main main.c
