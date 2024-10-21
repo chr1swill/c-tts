@@ -8,6 +8,34 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+char *join_path(char *filepath, char *filename) {
+  char *path_to_file = strdup(filepath);
+  if (path_to_file == NULL) {
+    fprintf(stderr, "Error duplicating path: %s\n", strerror(errno));
+    return NULL;
+  }
+
+  printf("path to file = (%s)\n", filepath);
+  printf("filename = (%s)\n", filename);
+
+  int filepath_buffer_size = (strlen(filepath) + strlen(filename) + 1);
+  char *filepath_buffer = malloc(sizeof(*filepath_buffer) * filepath_buffer_size);
+  if (filepath_buffer == NULL) {
+    fprintf(stderr, "Error creating buffer for filepath: %s\n", strerror(errno));
+    return NULL;
+  }
+
+  int rc = snprintf(filepath_buffer, filepath_buffer_size,
+      "%s/%s", filepath, filename);
+  if (rc == -1) {
+    fprintf(stderr, "Error creating file path: %s\n", strerror(errno));
+    free(filepath_buffer);
+    return NULL;
+  }
+
+  return filepath_buffer;
+};
+
 int main(void) {
   struct stat st = {0};
   char *path_to_outdir = "/home/chr1swill/Downloads/phoneme_phases";
@@ -90,29 +118,20 @@ int main(void) {
       free(pathname);
       return 1;
     }
-    printf("path to file = (%s)\n", path_to_file);
-    printf("filename = (%s)\n", speaker_dir_file->d_name);
 
-    int filepath_buffer_size = (strlen(path_to_file) + strlen(speaker_dir_file->d_name) + 1);
-    char *filepath_buffer = malloc(sizeof(*filepath_buffer) * filepath_buffer_size);
-
-    int rc = snprintf(filepath_buffer, filepath_buffer_size,
-        "%s/%s", path_to_file, speaker_dir_file->d_name);
-    if (rc == -1) {
-      fprintf(stderr, "Error creating file path: %s\n", strerror(errno));
+    char *filepath = join_path(path_to_file, speaker_dir_file->d_name);
+    if (filepath == NULL) {
+      fprintf(stderr, "Error failed to created filepath\n");
 
       close(outdir_fd);
       closedir(speaker_text_dir);
       closedir(textdir);
       free(pathname);
       free(path_to_file);
-      free(filepath_buffer);
       return 1;
     }
 
-    printf("full file path = (%s)\n", filepath_buffer);
-    free(path_to_file);
-    free(filepath_buffer);
+    printf("full file path = (%s)\n", filepath);
     break;
   }
 
