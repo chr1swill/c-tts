@@ -55,8 +55,7 @@ int main(void) {
     return 1;
   }
 
-  snprintf(pathname, 
-      (strlen(path_to_textdir) + 1 + strlen(dir->d_name) + 1),
+  snprintf(pathname, (strlen(path_to_textdir) + 1 + strlen(dir->d_name) + 1),
       "%s/%s", path_to_textdir, dir->d_name);
 
   DIR *speaker_text_dir = opendir(pathname);
@@ -81,7 +80,40 @@ int main(void) {
       continue;
     };
 
-    printf("files = (%s), type = (%d)\n", speaker_dir_file->d_name, speaker_dir_file->d_type);
+    char *filepath = strdup(pathname);
+    if (filepath == NULL) {
+      fprintf(stderr, "Error duplicating path: %s\n", strerror(errno));
+
+      close(outdir_fd);
+      closedir(speaker_text_dir);
+      closedir(textdir);
+      free(pathname);
+      return 1;
+    }
+    printf("filepath = (%s)\n", filepath);
+    printf("filename = (%s)\n", speaker_dir_file->d_name);
+
+    int filepath_buffer_size = (strlen(filepath) + strlen(speaker_dir_file->d_name) + 1);
+    char *filepath_buffer = malloc(sizeof(*filepath_buffer) * filepath_buffer_size);
+
+    int rc = snprintf(filepath_buffer, filepath_buffer_size,
+        "%s/%s", filepath, speaker_dir_file->d_name);
+    if (rc == -1) {
+      fprintf(stderr, "Error creating file path: %s\n", strerror(errno));
+
+      close(outdir_fd);
+      closedir(speaker_text_dir);
+      closedir(textdir);
+      free(pathname);
+      free(filepath);
+      free(filepath_buffer);
+      return 1;
+    }
+
+    printf("files = (%s)\n", filepath_buffer);
+    free(filepath);
+    free(filepath_buffer);
+    break;
   }
 
   close(outdir_fd);
