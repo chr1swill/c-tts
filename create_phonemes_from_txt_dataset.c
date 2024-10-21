@@ -55,7 +55,9 @@ int main(void) {
     return 1;
   }
 
-  sprintf(pathname, "%s/%s", path_to_textdir, dir->d_name);
+  snprintf(pathname, 
+      (strlen(path_to_textdir) + 1 + strlen(dir->d_name) + 1),
+      "%s/%s", path_to_textdir, dir->d_name);
 
   DIR *speaker_text_dir = opendir(pathname);
   if (speaker_text_dir == NULL ) {
