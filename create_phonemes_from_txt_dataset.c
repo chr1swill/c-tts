@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 char *join_path(char *filepath, char *filename) {
   char *path_to_file = strdup(filepath);
@@ -18,7 +19,7 @@ char *join_path(char *filepath, char *filename) {
   printf("path to file = (%s)\n", filepath);
   printf("filename = (%s)\n", filename);
 
-  int filepath_buffer_size = (strlen(filepath) + strlen(filename) + 1);
+  int filepath_buffer_size = (strlen(filepath) + 1 + strlen(filename) + 1);
   char *filepath_buffer = malloc(sizeof(*filepath_buffer) * filepath_buffer_size);
   if (filepath_buffer == NULL) {
     fprintf(stderr, "Error creating buffer for filepath: %s\n", strerror(errno));
@@ -72,7 +73,7 @@ int main(void) {
   // make it work for one then parallelize it once you understand what you are doing
   dir = readdir(textdir);
   assert( dir->d_name != NULL );
-  printf("%s\n", dir->d_name);
+  printf("dir name = (%s)\n", dir->d_name);
 
   char *pathname = malloc(sizeof(char) * ( strlen(path_to_textdir) + 1 + strlen(dir->d_name) + 1 ));
   if (pathname == NULL) {
@@ -132,6 +133,46 @@ int main(void) {
     }
 
     printf("full file path = (%s)\n", filepath);
+
+    int textfile_fd = open(filepath, O_RDONLY);
+    if (textfile_fd == -1) {
+      fprintf(stderr, "Error opening textfile = (%s): %s\n", filepath, strerror(errno));
+
+      close(outdir_fd);
+      closedir(speaker_text_dir);
+      closedir(textdir);
+      free(pathname);
+      free(path_to_file);
+      free(filepath);
+      return 1;
+    }
+
+    struct stat st = {0};
+    int result = stat(filepath, &st);
+    assert(result != -1);
+
+    char *file_content = (char *)mmap(NULL, st.st_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, textfile_fd, 0);
+    if (file_content == MAP_FAILED) {
+      fprintf(stderr, "Error maping file content to memory: %s\n", strerror(errno));
+
+      close(outdir_fd);
+      closedir(speaker_text_dir);
+      closedir(textdir);
+      free(pathname);
+      free(path_to_file);
+      free(filepath);
+      close(textfile_fd);
+      return 1;
+    }
+    file_content[st.st_size-1] = '\0'; 
+    // read to convert senetence to phenome senetence x
+                                     
+    printf("file content = (%s)\n", file_content);
+
+    free(path_to_file);
+    free(filepath);
+    close(textfile_fd);
+    munmap(file_content, st.st_size);
     break;
   }
 
