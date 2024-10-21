@@ -5,7 +5,8 @@
 #include <string.h>
 #include <dirent.h>
 #include <assert.h>
-
+#include <stdlib.h>
+#include <unistd.h>
 
 int main(void) {
   struct stat st = {0};
@@ -30,6 +31,8 @@ int main(void) {
   DIR *textdir = opendir(path_to_textdir);
   if (textdir == NULL ) {
     fprintf(stderr, "ERROR opening: %s\n", strerror(errno));
+
+    close(outdir_fd);
     return 1;
   }
 
@@ -41,7 +44,48 @@ int main(void) {
   // make it work for one then parallelize it once you understand what you are doing
   dir = readdir(textdir);
   assert( dir->d_name != NULL );
-  printf("filename = (%s), type = (%d), reclen = (%d)\n", dir->d_name, dir->d_type, dir->d_reclen);
+  printf("%s\n", dir->d_name);
+
+  char *pathname = malloc(sizeof(char) * ( strlen(path_to_textdir) + 1 + strlen(dir->d_name) + 1 ));
+  if (pathname == NULL) {
+    fprintf(stderr, "ERROR: failed to allocated memory for pathname\n");
+
+    close(outdir_fd);
+    closedir(textdir);
+    return 1;
+  }
+
+  sprintf(pathname, "%s/%s", path_to_textdir, dir->d_name);
+
+  DIR *speaker_text_dir = opendir(pathname);
+  if (speaker_text_dir == NULL ) {
+    fprintf(stderr, "ERROR opening: %s\n", strerror(errno));
+
+    close(outdir_fd);
+    closedir(textdir);
+    free(pathname);
+    return 1;
+  }
+
+  // loop over text files in speaker directory
+  struct dirent *speaker_dir_file;
+  while (( speaker_dir_file = readdir(speaker_text_dir)) != NULL ) {
+    assert(speaker_dir_file->d_name != NULL);
+
+    if (speaker_dir_file->d_type != DT_REG ||
+        (strcmp(speaker_dir_file->d_name, ".")) == 0 || 
+        (strcmp(speaker_dir_file->d_name, "..")) == 0) {
+      // skip the '.' and '..' dirs
+      continue;
+    };
+
+    printf("files = (%s), type = (%d)\n", speaker_dir_file->d_name, speaker_dir_file->d_type);
+  }
+
+  close(outdir_fd);
+  closedir(speaker_text_dir);
+  closedir(textdir);
+  free(pathname);
 
   return 0;
 }
