@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <ctype.h>
 
 char *join_path(char *filepath, char *filename) {
   char *path_to_file = strdup(filepath);
@@ -36,6 +37,50 @@ char *join_path(char *filepath, char *filename) {
 
   return filepath_buffer;
 };
+
+struct list_node {
+  char *string;
+  struct list_node *next;
+};
+
+void str_toupper(char* string, int length) {
+  assert(string[length] == '\0');
+  int i = 0;
+  while (i < length) {
+    string[i] = toupper(string[i]);
+
+    i++;
+  }
+}
+
+char *to_phonetic_tokens(char *string) {
+  int length = strlen(string);
+  assert(string[length] == '\0');
+
+  str_toupper(string, length);
+
+  struct list_node head = {0};
+  for (int i = 0; i < length; i++) {
+    char letter =  string[i];
+    if ((isspace(letter)) != 0) {
+      printf("got space = (%c)\n", letter); 
+      continue;
+    } else if ((ispunct(letter)) != 0) {
+      printf("got punction = (%c)\n", letter); 
+      continue;
+    } else if ((isdigit(letter)) != 0) {
+      printf("got digit = (%c)\n", letter); 
+      continue;
+    } else if ((isalpha(letter)) != 0) {
+      printf("got alpha = (%c)\n", letter); 
+      continue;
+    } else {
+      printf("no handler for char = (%c)\n", letter); 
+      continue;
+    }
+  }
+  return "";
+}
 
 int main(void) {
   struct stat st = {0};
@@ -166,6 +211,8 @@ int main(void) {
     }
     file_content[st.st_size-1] = '\0'; 
     // read to convert senetence to phenome senetence x
+
+    char *phonetic_tokens = to_phonetic_tokens(file_content);
                                      
     printf("file content = (%s)\n", file_content);
 
